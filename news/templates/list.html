@@ -1,0 +1,593 @@
+{% extends "base.html" %}
+{% block title %}News Feed{% endblock %}
+{% block content %} {% load humanize %}
+
+<div class="space-y-4 max-w-4xl mx-auto px-2 md:px-4 py-6 font-sans">
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+
+  <!-- Create Post Section -->
+  <div class="bg-white border border-gray-300 rounded-md p-3 mb-6 shadow-sm">
+    <form id="post-form" enctype="multipart/form-data" class="flex flex-col gap-3">
+      {% csrf_token %}
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center text-gray-400 border">
+          <i class="fa-solid fa-user text-lg"></i>
+        </div>
+        <input type="text" name="title" placeholder="Title..." required
+          class="flex-grow bg-gray-50 border border-gray-200 hover:bg-white hover:border-blue-500 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all" />
+      </div>
+
+      <div class="flex items-center gap-2">
+        <div class="flex-grow relative">
+          <select name="category_id" id="category-select" required
+            class="block w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500 focus:outline-none focus:border-blue-500 appearance-none">
+            <option value="" disabled selected>Choose a category</option>
+            {% for c in categories %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+          </select>
+          <i class="fa-solid fa-chevron-down absolute right-3 top-3 text-[10px] text-gray-400 pointer-events-none"></i>
+        </div>
+
+        <button type="button" id="btn-image" class="p-2 text-gray-500 hover:bg-gray-100 rounded-md transition-colors">
+          <i class="fa-regular fa-image text-xl"></i>
+        </button>
+        <input type="file" name="image" id="image-input" accept="image/*" class="hidden" />
+
+        <button type="submit"
+          class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-bold transition-all shadow-sm">
+          Post
+        </button>
+      </div>
+
+      <div class="border border-gray-200 rounded-md overflow-hidden hidden" id="editor-container">
+        <div id="post-editor" class="bg-white min-h-[120px]"></div>
+      </div>
+      <input type="hidden" name="content" id="post-content" />
+
+      <div id="image-preview" class="hidden w-full max-w-xs relative rounded-lg overflow-hidden border mt-2">
+        <img id="preview-img" class="w-full h-auto" />
+        <button type="button" id="btn-remove-image"
+          class="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-black transition-colors">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Category Filter Dropdown -->
+  <div class="relative mb-4 z-10">
+    <button type="button" id="category-filter-toggle"
+      class="bg-white border border-gray-300 rounded-md px-4 py-2.5 shadow-sm flex items-center justify-between min-w-[220px] hover:bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+      <span id="current-category-label" class="font-bold text-sm text-[#1A1A1B] flex items-center gap-2">
+        <i class="fa-solid fa-list text-gray-500"></i> All
+      </span>
+      <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+    </button>
+
+    <div id="category-dropdown-menu"
+      class="hidden absolute left-0 mt-1 w-[220px] bg-white border border-gray-200 rounded-md shadow-lg flex flex-col max-h-72 overflow-y-auto">
+      <button type="button" data-category="all" data-label="All"
+        class="category-item flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-[#1A1A1B] hover:bg-gray-100 transition-colors text-left border-b border-gray-100 bg-gray-50">
+        <i class="fa-solid fa-list w-4 text-center text-gray-500"></i> All
+      </button>
+      {% for c in categories %}
+      <button type="button" data-category="{{ c.id }}" data-label="{{ c.name }}"
+        class="category-item flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 hover:text-[#1A1A1B] transition-colors text-left border-b border-gray-100">
+        <i class="fa-solid fa-hashtag w-4 text-center text-gray-400"></i> {{ c.name }}
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- News Feed Container -->
+  <div id="news-container" class="space-y-3">
+    <!-- Skeleton Loaders (Initial state) -->
+    <div class="skeleton-post bg-white border border-gray-300 rounded-md p-4 animate-pulse flex gap-4">
+      <div class="w-10 flex flex-col items-center gap-2">
+        <div class="w-6 h-6 bg-gray-200 rounded"></div>
+        <div class="w-4 h-4 bg-gray-200 rounded"></div>
+        <div class="w-6 h-6 bg-gray-200 rounded"></div>
+      </div>
+      <div class="flex-1 space-y-3">
+        <div class="h-3 w-1/4 bg-gray-200 rounded"></div>
+        <div class="h-5 w-3/4 bg-gray-200 rounded"></div>
+        <div class="h-24 w-full bg-gray-100 rounded"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sentinel for infinite scroll -->
+  <div id="scroll-sentinel" class="h-20 flex items-center justify-center">
+    <div id="scroll-loader" class="hidden">
+      <div class="reddit-spinner"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  :root {
+    --reddit-orange: #FF4500;
+    --reddit-blue: #0079D3;
+    --reddit-bg: #DAE0E6;
+    --upvote-color: #FF4500;
+    --downvote-color: #7193FF;
+  }
+
+  body {
+    background-color: var(--reddit-bg);
+  }
+
+  .filter-btn {
+    color: #7c7c7c;
+  }
+
+  .filter-btn:hover {
+    background-color: #edeff1;
+  }
+
+  .filter-btn.active {
+    background-color: #edeff1;
+    color: var(--reddit-blue);
+  }
+
+  /* Upvote/Downvote Animations */
+  .vote-btn {
+    transition: transform 0.1s ease;
+  }
+
+  .vote-btn:active {
+    transform: scale(1.3);
+  }
+
+  .vote-btn.upvoted {
+    color: var(--upvote-color) !important;
+    font-weight: bold;
+  }
+
+  .vote-btn.downvoted {
+    color: var(--downvote-color) !important;
+    font-weight: bold;
+  }
+
+  /* Custom Post Styles */
+  .post-card {
+    background-color: white;
+    border: 1px solid #ccc;
+    transition: border-color 0.2s;
+  }
+
+  .post-card:hover {
+    border-color: #898989;
+  }
+
+  /* Category Badges */
+  .badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  /* Lazy loading blur */
+  .lazy-img {
+    filter: blur(10px);
+    transition: filter 0.4s ease-in-out;
+    background: #f1f1f1;
+  }
+
+  .lazy-img.loaded {
+    filter: blur(0);
+  }
+
+  /* Spinner */
+  .reddit-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top-color: var(--reddit-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Quill Fixes */
+  .ql-editor {
+    min-height: 120px;
+    font-size: 14px;
+  }
+
+  .ql-toolbar.ql-snow {
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    background: #f8f9fa;
+  }
+</style>
+
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("news-container");
+    const form = document.getElementById("post-form");
+    const titleInput = form.querySelector('input[name="title"]');
+    const editorContainer = document.getElementById("editor-container");
+    const categorySelect = document.getElementById("category-select");
+    const imageInput = document.getElementById("image-input");
+    const btnImage = document.getElementById("btn-image");
+    const preview = document.getElementById("image-preview");
+    const previewImg = document.getElementById("preview-img");
+    const sentinel = document.getElementById("scroll-sentinel");
+    const loader = document.getElementById("scroll-loader");
+
+    let currentCategory = "all";
+    let currentPage = 1;
+    let isLoading = false;
+    let hasMore = true;
+
+    // --- Helper for CSRF ---
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === name + "=") {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    // --- Quill Setup ---
+    const quill = new Quill("#post-editor", {
+      theme: "snow",
+      placeholder: "Text (optional)",
+      modules: { toolbar: [["bold", "italic"], [{ list: "bullet" }], ["link"]] }
+    });
+
+    // Show editor on focus
+    titleInput.addEventListener('focus', () => {
+      editorContainer.classList.remove('hidden');
+    });
+
+    // --- Category Colors Helper ---
+    const getCategoryStyles = (name) => {
+      const hash = [...name].reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
+      const hue = Math.abs(hash) % 360;
+      return `background-color: hsla(${hue}, 70%, 90%, 1); color: hsla(${hue}, 70%, 30%, 1);`;
+    };
+
+    // --- Hot Ranking Algorithm (Hacker News style) ---
+    const calculateHotScore = (votes, dateStr) => {
+      const p = (votes || 0) + 1;
+      const t = (new Date() - new Date(dateStr)) / 3600000; // time in hours
+      return p / Math.pow(t + 2, 1.8);
+    };
+
+    // --- Build reddit-style card ---
+    function buildPostCard(post) {
+      const timeAgo = post.created_at ? new Date(post.created_at).toLocaleDateString() : 'recently';
+      const catStyle = getCategoryStyles(post.category_name || "General");
+
+      return `
+        <div class="post-card flex rounded-md overflow-hidden group">
+            <!-- Vote Sidebar -->
+            <div class="vote-sidebar w-10 bg-gray-50 flex flex-col items-center py-2 gap-1 border-r border-gray-100">
+                <button class="vote-btn upvote-btn hover:bg-gray-200 p-1 rounded text-gray-400" onclick="handleVote(this, '${post.id}', 1)">
+                    <i class="fa-solid fa-arrow-up text-lg"></i>
+                </button>
+                <span class="text-xs font-bold vote-count">${post.votes || 0}</span>
+                <button class="vote-btn downvote-btn hover:bg-gray-200 p-1 rounded text-gray-400" onclick="handleVote(this, '${post.id}', -1)">
+                    <i class="fa-solid fa-arrow-down text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 p-3">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="badge" style="${catStyle}">${post.category_name || 'General'}</span>
+                    <span class="text-[11px] text-gray-500">
+                        Posted by <span class="hover:underline cursor-pointer">u/${post.author_username}</span> 
+                        <span class="mx-1">•</span> ${timeAgo}
+                    </span>
+                </div>
+                
+                <h2 class="text-lg font-bold text-[#1A1A1B] leading-snug mb-2 group-hover:underline">
+                    <a href="/${post.id}/">${post.title}</a>
+                </h2>
+
+                <div class="prose prose-sm max-w-none text-gray-700 line-clamp-3 text-sm mb-3">
+                    ${post.content || ""}
+                </div>
+
+                ${post.image_url ? `
+                <div class="rounded-lg border overflow-hidden bg-black/5 flex justify-center max-h-[512px] mb-3">
+                    <img data-src="${post.image_url}" class="lazy-img max-w-full h-auto object-contain" alt="Post content">
+                </div>
+                ` : ''}
+
+                <!-- Footer Actions -->
+                <div class="flex items-center gap-4 text-gray-500 text-xs font-bold">
+                    <a href="/${post.id}/" class="flex items-center gap-2 hover:bg-gray-100 px-2 py-1.5 rounded transition-colors">
+                        <i class="fa-regular fa-comment text-base"></i>
+                        <span>${post.comments_count || 0} Comments</span>
+                    </a>
+                    <div class="flex items-center gap-2 hover:bg-gray-100 px-2 py-1.5 rounded transition-colors cursor-default">
+                        <i class="fa-regular fa-eye text-base"></i>
+                        <span>${post.views} Views</span>
+                    </div>
+                    <button onclick="handleShare(this, '${post.id}')" class="cursor-pointer flex items-center gap-2 hover:bg-gray-100 px-2 py-1.5 rounded transition-colors">
+                        <i class="fa-solid fa-share text-base"></i>
+                        <span class="share-text">Share</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+      `;
+    }
+
+    // --- Logic Voting yang Diperbarui ---
+    window.handleVote = async function (btn, postId, value) {
+      const sidebar = btn.closest(".vote-sidebar");
+      const countSpan = sidebar.querySelector(".vote-count");
+      const upBtn = sidebar.querySelector(".upvote-btn");
+      const downBtn = sidebar.querySelector(".downvote-btn");
+
+      const isUpvote = value === 1;
+      const targetBtn = isUpvote ? upBtn : downBtn;
+      const otherBtn = isUpvote ? downBtn : upBtn;
+      const activeClass = isUpvote ? 'upvoted' : 'downvoted';
+
+      // CEK: Jika user klik tombol yang SUDAH aktif
+      if (targetBtn.classList.contains(activeClass)) {
+        // Logika Toggle: Jika diklik lagi saat aktif, batalkan vote (set ke 0)
+        value = 0;
+        targetBtn.classList.remove(activeClass);
+      } else {
+        // Bersihkan status dari tombol seberang (karena vote bersifat eksklusif)
+        otherBtn.classList.remove('upvoted', 'downvoted');
+        targetBtn.classList.add(activeClass);
+      }
+
+      // Simpan status lama untuk rollback jika error
+      const oldVotes = countSpan.textContent;
+      const oldClasses = {
+        up: upBtn.className,
+        down: downBtn.className
+      };
+
+      try {
+        const res = await fetch(`/api/${postId}/vote/`, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ value }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          countSpan.textContent = data.votes;
+        } else {
+          throw new Error("API Error");
+        }
+      } catch (err) {
+        console.error("Vote gagal:", err);
+        countSpan.textContent = oldVotes;
+        upBtn.className = oldClasses.up;
+        downBtn.className = oldClasses.down;
+      }
+    };
+
+    // --- Sub-function: Share ---
+    window.handleShare = async function (btn, postId) {
+      const url = `${window.location.origin}/${postId}/`;
+      const textSpan = btn.querySelector('.share-text');
+      const originalText = textSpan.textContent;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ url: url });
+        } catch (err) {
+          console.log('Share canceled or failed:', err);
+        }
+      } else {
+        try {
+          await navigator.clipboard.writeText(url);
+          textSpan.textContent = 'Copied!';
+          setTimeout(() => {
+            textSpan.textContent = originalText;
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy: ', err);
+        }
+      }
+    };
+
+    // --- Lazy Loading Images ---
+    const lazyLoad = () => {
+      const images = document.querySelectorAll('.lazy-img:not(.loaded)');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            img.src = img.dataset.src;
+            img.onload = () => img.classList.add('loaded');
+            observer.unobserve(img);
+          }
+        });
+      });
+      images.forEach(img => observer.observe(img));
+    };
+
+    // --- Fetch Logic ---
+    async function loadFeed(categoryId, page, append = false) {
+      if (isLoading) return;
+      isLoading = true;
+      loader.classList.remove('hidden');
+
+      try {
+        await new Promise(r => setTimeout(r, 800));
+        const res = await fetch(`/api/?category_id=${categoryId}&page=${page}`);
+        const data = await res.json();
+
+        if (!append) container.innerHTML = "";
+
+        if (data.news && data.news.length > 0) {
+          let posts = data.news;
+
+          posts.forEach(p => container.insertAdjacentHTML('beforeend', buildPostCard(p)));
+          lazyLoad();
+        } else if (!append) {
+          container.innerHTML = `<div class="p-10 text-center text-gray-500 font-bold">Wow, such empty.</div>`;
+        }
+
+        hasMore = data.has_more;
+      } catch (e) {
+        console.error(e);
+      } finally {
+        isLoading = false;
+        loader.classList.add('hidden');
+      }
+    }
+
+    // --- Init ---
+    loadFeed(currentCategory, currentPage);
+
+    // Filter Listeners (Dropdown)
+    const filterToggleBtn = document.getElementById("category-filter-toggle");
+    const filterDropdownMenu = document.getElementById("category-dropdown-menu");
+    const filterCurrentLabel = document.getElementById("current-category-label");
+
+    filterToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      filterDropdownMenu.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!filterToggleBtn.contains(e.target) && !filterDropdownMenu.contains(e.target)) {
+        filterDropdownMenu.classList.add('hidden');
+      }
+    });
+
+    document.querySelectorAll('.category-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.category-item').forEach(b => {
+          b.classList.remove('bg-gray-50', 'text-[#1A1A1B]');
+          b.classList.add('text-gray-600');
+        });
+        btn.classList.remove('text-gray-600');
+        btn.classList.add('bg-gray-50', 'text-[#1A1A1B]');
+
+        const iconHtml = btn.dataset.category === 'all'
+          ? '<i class="fa-solid fa-list text-gray-500"></i>'
+          : '<i class="fa-solid fa-hashtag text-gray-500"></i>';
+
+        filterCurrentLabel.innerHTML = `${iconHtml} ${btn.dataset.label}`;
+        filterDropdownMenu.classList.add('hidden');
+
+        currentCategory = btn.dataset.category;
+        currentPage = 1;
+        loadFeed(currentCategory, currentPage);
+      });
+    });
+
+    // Infinite Scroll
+    const scrollObserver = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore && !isLoading) {
+        currentPage++;
+        loadFeed(currentCategory, currentPage, true);
+      }
+    }, { threshold: 0.1 });
+    scrollObserver.observe(sentinel);
+
+    // --- Image Preview Logic ---
+    btnImage.addEventListener("click", () => imageInput.click());
+    imageInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          preview.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById("btn-remove-image").addEventListener("click", () => {
+      imageInput.value = "";
+      preview.classList.add("hidden");
+    });
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const content = quill.root.innerHTML;
+      if (content === "<p><br></p>" || !content.trim()) {
+        alert("Post content cannot be empty.");
+        return;
+      }
+
+      if (!categorySelect.value) {
+        alert("Please choose a category.");
+        return;
+      }
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = "Posting...";
+      submitBtn.disabled = true;
+
+      const formData = new FormData(form);
+      formData.set("content", content);
+
+      try {
+        const res = await fetch("/api/create/", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          form.reset();
+          quill.root.innerHTML = "";
+          preview.classList.add("hidden");
+          imageInput.value = "";
+          editorContainer.classList.add("hidden");
+
+          currentPage = 1;
+          loadFeed(currentCategory, currentPage);
+        } else {
+          alert(data.error || "Failed to create post.");
+        }
+      } catch (err) {
+        console.error("Post creation error:", err);
+        alert("An error occurred while posting.");
+      } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+  });
+</script>
+{% endblock %}
