@@ -2,6 +2,8 @@
 
 A Django web application for writing and reading game reviews, with authentication powered by Supabase.
 
+![Landing page screenshot]()
+
 ## Tech Stack
 
 - Python 3 + Django 6
