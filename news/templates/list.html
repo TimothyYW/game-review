@@ -235,6 +235,7 @@
     let currentPage = 1;
     let isLoading = false;
     let hasMore = true;
+    const votingState = {};
 
     // --- Helper for CSRF ---
     function getCookie(name) {
@@ -342,6 +343,10 @@
 
     // --- Logic Voting yang Diperbarui ---
     window.handleVote = async function (btn, postId, value) {
+      // 🚫 Prevent spam click / double request
+      if (votingState[postId]) return;
+      votingState[postId] = true;
+
       const sidebar = btn.closest(".vote-sidebar");
       const countSpan = sidebar.querySelector(".vote-count");
       const upBtn = sidebar.querySelector(".upvote-btn");
@@ -350,25 +355,57 @@
       const isUpvote = value === 1;
       const targetBtn = isUpvote ? upBtn : downBtn;
       const otherBtn = isUpvote ? downBtn : upBtn;
-      const activeClass = isUpvote ? 'upvoted' : 'downvoted';
+      const activeClass = isUpvote ? "upvoted" : "downvoted";
 
-      // CEK: Jika user klik tombol yang SUDAH aktif
-      if (targetBtn.classList.contains(activeClass)) {
-        // Logika Toggle: Jika diklik lagi saat aktif, batalkan vote (set ke 0)
-        value = 0;
-        targetBtn.classList.remove(activeClass);
-      } else {
-        // Bersihkan status dari tombol seberang (karena vote bersifat eksklusif)
-        otherBtn.classList.remove('upvoted', 'downvoted');
-        targetBtn.classList.add(activeClass);
-      }
-
-      // Simpan status lama untuk rollback jika error
-      const oldVotes = countSpan.textContent;
+      // ========================
+      // 💾 SAVE OLD STATE (ROLLBACK)
+      // ========================
+      const oldVotes = parseInt(countSpan.textContent);
       const oldClasses = {
         up: upBtn.className,
-        down: downBtn.className
+        down: downBtn.className,
       };
+
+      // ========================
+      // 🔄 DETERMINE FINAL VALUE
+      // ========================
+      let finalValue = value;
+
+      if (targetBtn.classList.contains(activeClass)) {
+        // toggle off
+        finalValue = 0;
+      }
+
+      // ========================
+      // ⚡ OPTIMISTIC UI
+      // ========================
+      let optimisticVotes = oldVotes;
+
+      if (finalValue === 1) {
+        optimisticVotes += upBtn.classList.contains("upvoted") ? 0 : 1;
+        if (downBtn.classList.contains("downvoted")) optimisticVotes += 1;
+      } else if (finalValue === -1) {
+        optimisticVotes -= downBtn.classList.contains("downvoted") ? 0 : 1;
+        if (upBtn.classList.contains("upvoted")) optimisticVotes -= 1;
+      } else {
+        // unvote
+        if (upBtn.classList.contains("upvoted")) optimisticVotes -= 1;
+        if (downBtn.classList.contains("downvoted")) optimisticVotes += 1;
+      }
+
+      // update UI instantly
+      countSpan.textContent = optimisticVotes;
+
+      // update button state
+      upBtn.classList.remove("upvoted");
+      downBtn.classList.remove("downvoted");
+
+      if (finalValue === 1) upBtn.classList.add("upvoted");
+      if (finalValue === -1) downBtn.classList.add("downvoted");
+
+      // disable buttons while loading
+      upBtn.disabled = true;
+      downBtn.disabled = true;
 
       try {
         const res = await fetch(`/api/${postId}/vote/`, {
@@ -377,20 +414,39 @@
             "X-CSRFToken": getCookie("csrftoken"),
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ value }),
+          body: JSON.stringify({ value: finalValue }),
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          countSpan.textContent = data.votes;
-        } else {
-          throw new Error("API Error");
+        if (!res.ok) throw new Error("API Error");
+
+        const data = await res.json();
+
+        // ✅ SERVER = SOURCE OF TRUTH
+        countSpan.textContent = data.votes;
+
+        // optional: sync state from server
+        if (data.user_vote !== undefined) {
+          upBtn.classList.remove("upvoted");
+          downBtn.classList.remove("downvoted");
+
+          if (data.user_vote === 1) upBtn.classList.add("upvoted");
+          if (data.user_vote === -1) downBtn.classList.add("downvoted");
         }
+
       } catch (err) {
-        console.error("Vote gagal:", err);
+        console.error("Vote failed:", err);
+
+        // 🔁 FULL ROLLBACK
         countSpan.textContent = oldVotes;
         upBtn.className = oldClasses.up;
         downBtn.className = oldClasses.down;
+
+      } finally {
+        // 🔓 unlock
+        votingState[postId] = false;
+
+        upBtn.disabled = false;
+        downBtn.disabled = false;
       }
     };
 

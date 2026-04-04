@@ -6,7 +6,7 @@ from .forms import NewsForm
 from core.supabase import get_supabase_client
 from datetime import datetime
 from accounts.decorator import supabase_auth_required
-from core.utils import parse_supabase_data
+from core.utils import parse_supabase_data, compress_image
 
 def news_list(request):
     res = (
@@ -159,14 +159,33 @@ def news_detail(request, pk):
 @supabase_auth_required
 def news_create(request):
     if request.method == 'POST':
-        form = NewsForm(request.POST)
+        form = NewsForm(request.POST, request.FILES)
         if form.is_valid():
             user_id = request.session.get('supabase_user_id')
+            title = form.cleaned_data['title']
+            content = form.cleaned_data['content']
+            image = form.cleaned_data.get('image')
             
+            image_url = None
+            if image:
+                try:
+                    compressed_image = compress_image(image)
+                    file_ext = "jpg"
+                    file_name = f"{uuid.uuid4()}.{file_ext}"
+                    get_supabase_client().storage.from_("news_bucket").upload(
+                        file_name,
+                        compressed_image.read(),
+                        {"content-type": "image/jpeg"},
+                    )
+                    image_url = get_supabase_client().storage.from_("news_bucket").get_public_url(file_name)
+                except Exception as e:
+                    print(f"Image upload failed: {e}")
+
             get_supabase_client().table('news').insert({
-                'title': form.cleaned_data['title'],
-                'content': form.cleaned_data['content'],
+                'title':     title,
+                'content':   content,
                 'author_id': user_id,
+                'image_url': image_url,
             }).execute()
             return redirect('news_list')
     else:
@@ -237,13 +256,14 @@ def news_api_create(request):
 
     image_url = None
     if image:
-        file_ext  = image.name.rsplit(".", 1)[-1].lower()
-        file_name = f"{uuid.uuid4()}.{file_ext}"
         try:
+            compressed_image = compress_image(image)
+            file_ext = "jpg"
+            file_name = f"{uuid.uuid4()}.{file_ext}"
             supabase.storage.from_("news_bucket").upload(
                 file_name,
-                image.read(),
-                {"content-type": image.content_type},
+                compressed_image.read(),
+                {"content-type": "image/jpeg"},
             )
             image_url = supabase.storage.from_("news_bucket").get_public_url(file_name)
         except Exception as e:
@@ -314,13 +334,14 @@ def news_update(request, pk):
             image_url = None
 
         elif image:
-            file_ext  = image.name.rsplit(".", 1)[-1].lower()
-            file_name = f"{uuid.uuid4()}.{file_ext}"
             try:
+                compressed_image = compress_image(image)
+                file_ext = "jpg"
+                file_name = f"{uuid.uuid4()}.{file_ext}"
                 client.storage.from_("news_bucket").upload(
                     file_name,
-                    image.read(),
-                    {"content-type": image.content_type},
+                    compressed_image.read(),
+                    {"content-type": "image/jpeg"},
                 )
                 image_url = client.storage.from_("news_bucket").get_public_url(file_name)
             except Exception as e:
