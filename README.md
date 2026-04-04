@@ -64,13 +64,8 @@ assets/schema.sql
 python manage.py migrate
 ```
 
-### 7. Create a superuser (optional, for Django admin)
 
-```bash
-python manage.py createsuperuser
-```
-
-### 8. Start the development server
+### 7. Start the development server
 
 ```bash
 python manage.py runserver
