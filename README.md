@@ -37,10 +37,15 @@ pip install -r requirements.txt
 Create a `.env` file in the root directory:
 
 ```env
-DEBUG=True
-DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres
-SUPABASE_URL=https://[PROJECT_REF].supabase.co
-SUPABASE_KEY=[YOUR_ANON_PUBLIC_KEY]
+SUPABASE_URL=
+SUPABASE_KEY=
+SUPABASE_SERVICE_KEY=
+
+# For Django ORM (standard Postgres connection)
+DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres"
+
+ALLOWED_HOSTS=
+DEBUG='True'
 ```
 
 > Get these values from your Supabase project: **Settings → API** and **Settings → Database**.
