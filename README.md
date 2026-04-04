@@ -4,6 +4,19 @@ A Django web application for writing and reading game reviews, with authenticati
 
 ![Landing page screenshot](./assets/images/landing-page.png)
 
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [UX Design](#ux-design)
+3. [Agile Development](#agile-development)
+4. [Features](#features)
+5. [Technologies Used](#technologies-used)
+6. [Testing](#testing)
+7. [Tech Stack](#Tech Stack)
+9. [Setup](#Setup)
+10. [Project Structure](#Project Structure)
+11. [Deployment](#deployment)
+12. [Credits](#credits)
+
 ## Tech Stack
 
 - Python 3 + Django 6
