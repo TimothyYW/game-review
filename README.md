@@ -11,9 +11,9 @@ A Django web application for writing and reading game reviews, with authenticati
 4. [Features](#features)
 5. [Technologies Used](#technologies-used)
 6. [Testing](#testing)
-7. [Tech Stack](#Tech Stack)
-9. [Setup](#Setup)
-10. [Project Structure](#Project Structure)
+7. [Tech Stack](#tech-Stack)
+9. [Setup](#setup)
+10. [Project Structure](#project-structure)
 11. [Deployment](#deployment)
 12. [Credits](#credits)
 
