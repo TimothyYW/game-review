@@ -1,13 +1,12 @@
 # Game Review
 
-A Django web application for writing and reading game reviews, with authentication powered by Supabase.
+A Django web application for writing and reading game reviews, with authentication powered by Supabase. Not just game any type of topic from IT, and user can up vote or down vote the post and leave comments.
 
-![Landing page screenshot](./assets/images/landing-page.png)
+![screenshot mock-up test](./assets/images/mock-up-test.png)
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
 2. [UX Design](#ux-design)
-3. [Agile Development](#agile-development)
 4. [Features](#features)
 5. [Technologies Used](#technologies-used)
 6. [Testing](#testing)
@@ -28,7 +27,7 @@ A Django web application for writing and reading game reviews, with authenticati
 - Search for specific games or reviews.
 - Up vote or Down vote the review that are left.
 
-[Live Site](https://game-review-jg6a.onrender.com)
+[Live Site](https://game-review-cqgo.onrender.com)
 
 ## UX Design
 
@@ -46,39 +45,43 @@ Wireframe edit profile
 
 ![Wireframe Edit Profile](./assets/images/wireframe-edit-profile.png)
 
-## Agile development
-
 ## Features
 
 ### Existing Features
-1. User Authentication
-   - Registration
-   - Login/Logout
-   - Password Reset
 
-2. Review Management
-   - Create Reviews
-   - View Reviews
+Review Management
+- Create Reviews
+- View Reviews
 
-3. Profile Management
-   - Update Profile
-   - View Review History
-   - Profile Picture Upload
+![Landing page screenshot](./assets/images/landing-page.png)
 
-4. Search Functionality
-   - Search by Gaming
-   - Search by Filter
+User Authentication
+- Registration
+- Login/Logout
+- Password Reset
 
-%. Miscellenious 
+![Login/Register page screenshot](./assets/images/login/register-page.png)
+
+Profile Management
+- Update Profile
+- View Review History
+- Profile Picture Upload
+
+![searching page screenshot](./assets/images/searching-page.png)
+
+Search Functionality
+- Search by Catagories
+- Search by Filter
 
 ### Future Feature
 
+1. Deleting Post
 
 ## Technologies Used
 
 ### Languages
+
 - HTML5
-- CSS3
 - JavaScript
 - Python 3.8
 
@@ -88,6 +91,10 @@ Wireframe edit profile
 - Supabase (Auth + PostgreSQL)
 
 ---
+
+## Testing
+
+
 
 ## Setup
 
@@ -215,3 +222,8 @@ DEBUG=False
 Click **Deploy**.
 
 ## Credits
+
+- Website for Mock-up test
+  https://techsini.com/multi-mockup/index.php
+- Mock-up test solver
+  https://techsini.com/unable-to-generate-mockup-of-your-website-here-is-the-quick-fix/
