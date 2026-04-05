@@ -27,7 +27,7 @@ A Django web application for writing and reading game reviews, with authenticati
 - Search for specific games or reviews.
 - Up vote or Down vote the review that are left.
 
-[Live Site](https://game-review-cqgo.onrender.com)
+[Live site](https://game-review-cqgo.onrender.com)
 
 ## UX Design
 
