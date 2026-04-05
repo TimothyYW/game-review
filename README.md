@@ -19,19 +19,30 @@ A Django web application for writing and reading game reviews, with authenticati
 
 ## Project Overview
 
+- Create account
+- Update profile
+- Posting about other topic such as IT topic in general.
 - Share detailed reviews of games they've played.
 - Browse reviews from other gamers.
 - Manage their profile and review history.
 - Search for specific games or reviews.
 - Up vote or Down vote the review that are left.
 
+[Live Site](https://game-review-jg6a.onrender.com)
+
 ## UX Design
 
 ### Wireframe
 
+Wireframe landing page
+
 ![Wireframe Landing Page](./assets/images/wireframe-landing-page.png)
 
+Wireframe login page
+
 ![Wireframe Login Page](./assets/images/wireframe-login-page.png)
+
+Wireframe edit profile
 
 ![Wireframe Edit Profile](./assets/images/wireframe-edit-profile.png)
 
@@ -47,8 +58,6 @@ A Django web application for writing and reading game reviews, with authenticati
 
 2. Review Management
    - Create Reviews
-   - Edit Reviews
-   - Delete Reviews
    - View Reviews
 
 3. Profile Management
@@ -57,9 +66,10 @@ A Django web application for writing and reading game reviews, with authenticati
    - Profile Picture Upload
 
 4. Search Functionality
-   - Search by Game Name
-   - Search by Genre
-   - Search by Developer
+   - Search by Gaming
+   - Search by Filter
+
+%. Miscellenious 
 
 ### Future Feature
 
@@ -158,6 +168,40 @@ game-review/
 ```
 ## Deployment
 
+- Create Render Account
 
+- Click New
+
+- Click "Web Service"
+
+- Search for repo and click connect
+
+- Name the app
+
+- Ensure root empty
+
+- Enviornment Python 3
+
+- Region Frankfurt Central Europe
+
+- Branch have to be Main
+
+- Set build in command  pip install -r requirements.txt && npm install
+
+- start command gunicorn core.wsgi:application
+
+- Ensure free plan
+
+- Scroll to advance
+
+- Click Add enviornment variable
+    ALLOWED_HOSTS
+    DATABASE_URL
+    DEBUG = False
+    SUPABASE_KEY 
+    SUPABASE_SERVICE_KEY
+    SUPABASE_URL
+
+- Click Deploy
 
 ## Credits
