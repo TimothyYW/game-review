@@ -120,7 +120,6 @@ This edit profile mode, user can input new username, view email, add information
 ### Unfixed bugs
 
 - There is a bug where render decided to shut down the link that is deployed.
-  note: if that occur please let me know ASAP.
 
 ## Setup
 
