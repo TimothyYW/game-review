@@ -39,6 +39,31 @@ A Django web application for writing and reading game reviews, with authenticati
 
 ## Features
 
+### Existing Features
+1. User Authentication
+   - Registration
+   - Login/Logout
+   - Password Reset
+
+2. Review Management
+   - Create Reviews
+   - Edit Reviews
+   - Delete Reviews
+   - View Reviews
+
+3. Profile Management
+   - Update Profile
+   - View Review History
+   - Profile Picture Upload
+
+4. Search Functionality
+   - Search by Game Name
+   - Search by Genre
+   - Search by Developer
+
+### Future Feature
+
+
 ## Technologies Used
 
 ### Languages
@@ -132,5 +157,7 @@ game-review/
 └── manage.py
 ```
 ## Deployment
+
+
 
 ## Credits
