@@ -29,7 +29,11 @@ A Django web application for writing and reading game reviews, with authenticati
 
 ### Wireframe
 
+!{Wireframe Landing Page}(./assets/images/wireframe-landing-page.png)
 
+!{Wireframe Login Page}(./assets/images/wireframe-login-page.png)
+
+!{Wireframe Edit Profile}(./assets/images/wireframe-edit-profile.png)
 
 ## Agile development
 
