@@ -2,7 +2,20 @@
 
 A Django web application for writing and reading game reviews, with authentication powered by Supabase.
 
-![Landing page screenshot]()
+![Landing page screenshot](./assets/images/landing-page.png)
+
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [UX Design](#ux-design)
+3. [Agile Development](#agile-development)
+4. [Features](#features)
+5. [Technologies Used](#technologies-used)
+6. [Testing](#testing)
+7. [Tech Stack](#tech-Stack)
+9. [Setup](#setup)
+10. [Project Structure](#project-structure)
+11. [Deployment](#deployment)
+12. [Credits](#credits)
 
 ## Tech Stack
 
