@@ -75,10 +75,6 @@ This edit profile mode, user can input new username, view email, add information
 
 ![profile edit page screenshot](./assets/images/edit-profile.png)
 
-
-
-![searching page screenshot](./assets/images/searching-page.png)
-
 ### Future Feature
 
 1. Deleting Post
@@ -113,7 +109,9 @@ This edit profile mode, user can input new username, view email, add information
 | TC06     | Login (Invalid user)         | User cannot login              | User cannot login              | Pass |
 | TC07     | Login (Valid user)           | User login                     | User login                     | Pass |
 | TC08     | Register new user            | User recieved an email confirmation then login | User recieved an email confirmation then login | Pass |
-| TC09     | Update username              | New username appeared          | New username appeared  | Pass |
+| TC09     | Update username              | New username appeared          | New username appeared          | Pass |
+| TC09     | User deleting account        | Account deleted                | Account deleted                | Pass |
+| TC010    | Upload profile picture       | Profile picture updated        | Profile picture updated        | Pass |
 
 - All core features are working as expected.
 - The deployed application runs successfully on Render.
@@ -251,7 +249,9 @@ Click **Deploy**.
 
 ## Credits
 
-- Website for Mock-up test
+- Website for Mock-up test:
   https://techsini.com/multi-mockup/index.php
-- Mock-up test solver
+- Mock-up test solver:
   https://techsini.com/unable-to-generate-mockup-of-your-website-here-is-the-quick-fix/
+- Phto use in post is open source.
+- The idea pprojcet come and inspired from Code Institute.
