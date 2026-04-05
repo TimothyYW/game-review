@@ -67,11 +67,13 @@ Profile Management
 - View Review History
 - Profile Picture Upload
 
-![searching page screenshot](./assets/images/searching-page.png)
+![profile page screenshot](./assets/images/profile-page.png)
 
 Search Functionality
 - Search by Catagories
 - Search by Filter
+
+![searching page screenshot](./assets/images/searching-page.png)
 
 ### Future Feature
 
