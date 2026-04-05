@@ -168,40 +168,50 @@ game-review/
 ```
 ## Deployment
 
-- Create Render Account
+This guide walks through deploying this Django application to [Render](https://render.com).
 
-- Click New
+### 1. Project Preparation
 
-- Click "Web Service"
+Install the required packages:
 
-- Search for repo and click connect
+```bash
+pip install gunicorn whitenoise psycopg2-binary python-dotenv
+pip freeze > requirements.txt
+```
 
-- Name the app
+### 2. Make executable a build script 
 
-- Ensure root empty
+```bash
+chmod a+x build.sh
+```
 
-- Enviornment Python 3
+### 3. Render Dashboard Setup
 
-- Region Frankfurt Central Europe
+1. Go to [render.com](https://render.com) and create an account
+2. Click **New** → **Web Service**
+3. Connect your GitHub repository
+4. Select **Environment: Python 3**
 
-- Branch have to be Main
+Set the following:
 
-- Set build in command  pip install -r requirements.txt && npm install
+| Setting | Value |
+|---|---|
+| Build Command | `./build.sh` |
+| Start Command | `gunicorn core.wsgi:application` |
 
-- start command gunicorn core.wsgi:application
+### 4. Environment Variables
 
-- Ensure free plan
+In the Render dashboard, scroll to **Advanced** and add the following environment variables:
 
-- Scroll to advance
+```
+SUPABASE_URL=
+SUPABASE_KEY=
+SUPABASE_SERVICE_KEY=
+DATABASE_URL=
+ALLOWED_HOSTS=
+DEBUG=False
+```
 
-- Click Add enviornment variable
-    ALLOWED_HOSTS
-    DATABASE_URL
-    DEBUG = False
-    SUPABASE_KEY 
-    SUPABASE_SERVICE_KEY
-    SUPABASE_URL
-
-- Click Deploy
+Click **Deploy**.
 
 ## Credits
