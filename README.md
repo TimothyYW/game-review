@@ -17,6 +17,32 @@ A Django web application for writing and reading game reviews, with authenticati
 11. [Deployment](#deployment)
 12. [Credits](#credits)
 
+## Project Overview
+
+- Share detailed reviews of games they've played.
+- Browse reviews from other gamers.
+- Manage their profile and review history.
+- Search for specific games or reviews.
+- Up vote or Down vote the review that are left.
+
+## UX Design
+
+### Wireframe
+
+
+
+## Agile development
+
+## Features
+
+## Technologies Used
+
+### Languages
+- HTML5
+- CSS3
+- JavaScript
+- Python 3.8
+
 ## Tech Stack
 
 - Python 3 + Django 6
@@ -101,3 +127,6 @@ game-review/
 ├── assets/         # schema.sql
 └── manage.py
 ```
+## Deployment
+
+## Credits
