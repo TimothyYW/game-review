@@ -60,7 +60,7 @@ User Authentication
 - Login/Logout
 - Password Reset
 
-![Login/Register page screenshot](./assets/images/login/register-page.png)
+![Login/Register page screenshot](./assets/images/login-register-page.png)
 
 Profile Management
 - Update Profile
