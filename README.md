@@ -27,6 +27,10 @@ A Django web application for writing and reading game reviews, with authenticati
 
 ## UX Design
 
+### Wireframe
+
+
+
 ## Agile development
 
 ## Features
